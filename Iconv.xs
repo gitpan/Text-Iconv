@@ -1,4 +1,4 @@
-/* $Id: Iconv.xs,v 1.8 2000/12/17 23:50:02 mxp Exp $ */
+/* $Id: Iconv.xs,v 1.9 2001/08/11 10:10:04 mxp Exp $ */
 /* XSUB for Perl module Text::Iconv                  */
 /* Copyright (c) 2000 Michael Piotrowski             */
 
@@ -27,7 +27,7 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
 			     and 0 when the conversion has finished */
    size_t  outbytesleft;  /* no. of bytes in the output buffer */
    size_t  l_obuf;        /* length of the output buffer */
-   char *icursor;         /* current position in the input buffer */
+   char    *icursor;      /* current position in the input buffer */
    /* The Single UNIX Specification (version 1 and version 2), as well
       as the HP-UX documentation from which the XPG iconv specs are
       derived, are unclear about the type of the second argument to
@@ -36,20 +36,28 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
    char    *ocursor;      /* current position in the output buffer */
    size_t  ret;           /* iconv() return value */
    SV      *perl_str;     /* Perl return string */
+
+   /* Check if the input string is actually `defined'; otherwise
+      simply return undef.  This is not considered an error. */
+
+   if (! SvOK(string))
+   {
+      return(&PL_sv_undef);
+   }
    
    perl_str = newSVpv("", 0);
 
-   /* Get length of input string. That's why we take an SV* instead of
-      a char*: This way we can convert UCS-2 strings because we know
-      their length. */
+   /* Get length of input string.  That's why we take an SV* instead
+      of a char*: This way we can convert UCS-2 strings because we
+      know their length. */
 
    inbytesleft = SvCUR(string);
    ibuf        = SvPV(string, inbytesleft);
    
    /* Calculate approximate amount of memory needed for the temporary
-      output buffer and reserve the memory. The idea is to choose it
+      output buffer and reserve the memory.  The idea is to choose it
       large enough from the beginning to reduce the number of copy
-      operations when converting from a single byte to a multibyte
+      operations when converting from a single-byte to a multibyte
       encoding. */
    
    if(inbytesleft <= MB_LEN_MAX)
@@ -73,9 +81,15 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
    
    while(inbytesleft != 0)
    {
+#ifdef __hpux
+      /* Even in HP-UX 11.00, documentation and header files do not agree */
       ret = iconv(iconv_handle, &icursor, &inbytesleft,
 		                &ocursor, &outbytesleft);
-      
+#else
+      ret = iconv(iconv_handle, (const char **)&icursor, &inbytesleft,
+		                &ocursor, &outbytesleft);
+#endif
+
       if(ret == (size_t) -1)
       {
 	 switch(errno)

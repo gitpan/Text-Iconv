@@ -1,6 +1,6 @@
-Text::Iconv Version 1.1
+Text::Iconv Version 1.2
 
-Copyright © 2000 Michael Piotrowski.  All Rights Reserved.
+Copyright © 2001 Michael Piotrowski.  All Rights Reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
@@ -74,10 +74,10 @@ Installation
 Feedback
 --------
 
-This version of Locale::iconv was tested on HP-UX 10.20, Solaris 2.6,
-and Linux 2.2.13 (whatever that means), using their native iconv
-implementations.  I've also gotten success reports for HP-UX 10.20 and
-Solaris 2.6 using Bruno Haible's libiconv.
+This version of Locale::iconv was tested on HP-UX 10.20 and 11.00,
+Solaris 2.6, and Linux 2.2.13 (whatever that means), using their
+native iconv implementations.  I've also gotten success reports for
+HP-UX 10.20 and Solaris 2.6 using Bruno Haible's libiconv.
 
 If you are building the module on another platform I would appreciate
 a note to tell me how you got on, especially if you need to specify
@@ -89,6 +89,7 @@ Thanks
 
 Thanks go to:
 
-Otto Frost, Marc Lehmann, Loic Dachary, Steve Haslam, and Leon Brocard.
+Otto Frost, Marc Lehmann, Loic Dachary, Steve Haslam, Matt Sergeant,
+and Leon Brocard.
 
 Michael Piotrowski <mxp@dynalabs.de>

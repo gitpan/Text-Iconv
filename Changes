@@ -11,3 +11,9 @@ Revision history for Perl extension Text::Iconv.
 	- improved and expanded test script
 	- fixes core dumps with aborted conversions
 	- adds experimental class attribute/method raise_error
+
+1.2   Fri Jul 27 10:46:56 METDST 2001
+	- converting undef now always returns undef
+	- since HP-UX seems to be the only platform where the second
+	  argument to iconv() is *not* const char**, put an #ifdef
+	  into Iconv.xs

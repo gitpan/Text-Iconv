@@ -1,5 +1,5 @@
 package Text::Iconv;
-# @(#) $Id: Iconv.pm,v 1.2 2000/02/27 15:55:28 mxp Exp $
+# @(#) $Id: Iconv.pm,v 1.3 2001/08/11 10:10:04 mxp Exp $
 # Copyright (c) 2000 Michael Piotrowski
 
 use strict;
@@ -16,7 +16,7 @@ require AutoLoader;
 @EXPORT_OK = qw(
 	convert
 );
-$VERSION = '1.1';
+$VERSION = '1.2';
 
 bootstrap Text::Iconv $VERSION;
 
@@ -69,6 +69,12 @@ usage:
   $a = Text::Iconv->raise_error(); # Get current setting
 
 Consult L<iconv(3)> for details on errors that might occur.
+
+Converting undef, e.g.,
+
+  $converted = $converter->convert(undef);
+
+always returns undef.  This is not considered an error.
 
 =head1 NOTES
 
