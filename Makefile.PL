@@ -1,4 +1,4 @@
-# @(#) $Id: Makefile.PL,v 1.5 2004/06/28 19:17:32 mxp Exp $
+# @(#) $Id: Makefile.PL,v 1.6 2004/07/17 22:16:55 mxp Exp $
 
 use ExtUtils::MakeMaker;
 use Config;
@@ -8,11 +8,23 @@ my $ok;
 
 ###############################################################################
 # Read settings from the commandline
+# We must delete the options we're handling ourselves to keep
+# MakeMaker from processing them, but the rest should be preserved so
+# that we get the default MakeMaker behavior.
 
-while ($_ = shift)
+my $i = 0;
+
+while ($i <= $#ARGV)
 {
-   my ($key, $val) = split(/=/, $_, 2);
+   my ($key, $val) = split(/=/, $ARGV[$i], 2);
    $config{$key} = $val;
+
+   if ($key eq 'LIBS' || $key eq 'INC')
+   {
+      delete $ARGV[$i];
+   }
+
+   $i++;
 }
 
 ###############################################################################

@@ -1,4 +1,4 @@
-/* $Id: Iconv.xs,v 1.10 2004/06/28 19:07:52 mxp Exp $ */
+/* $Id: Iconv.xs,v 1.12 2004/07/17 22:08:50 mxp Exp $ */
 /* XSUB for Perl module Text::Iconv                  */
 /* Copyright (c) 2004 Michael Piotrowski             */
 
@@ -19,15 +19,24 @@ extern "C" {
 
 struct tiobj
 {
-   iconv_t handle; /* iconv handle (returned by iconv_open()) */
-   SV *retval;     /* iconv() return value (according to the Single UNIX
-		      Specification, "the number of non-identical conversions
-		      performed") */
+   iconv_t handle;     /* iconv handle (returned by iconv_open()) */
+   SV *retval;         /* iconv() return value (according to the Single UNIX
+		          Specification, "the number of non-identical
+			  conversions performed") */
+   SV *raise_error;    /* Per-object flag controlling whether exceptions
+                          are to be thrown */
 };
 
 /*****************************************************************************/
 
 static int raise_error = 0;
+
+/* Macro for checking when to throw an exception for use in the
+   do_conv() function.  The logic is: Throw an exception IF
+   obj->raise_error is undef AND raise_error is true OR IF
+   obj->raise_error is true */
+#define RAISE_ERROR_P (!SvOK(obj->raise_error) && raise_error) \
+      || SvTRUE(obj->raise_error)
 
 SV *do_conv(struct tiobj *obj, SV *string)
 {
@@ -77,7 +86,7 @@ SV *do_conv(struct tiobj *obj, SV *string)
    }
    else
    {
-      outbytesleft = 2 * inbytesleft;
+      outbytesleft = 5; /* 2 * inbytesleft; */
    }
 
    l_obuf = outbytesleft;
@@ -97,8 +106,9 @@ SV *do_conv(struct tiobj *obj, SV *string)
    
    while(inbytesleft != 0)
    {
-#ifdef __hpux
+#if (defined(__hpux) || defined(__linux)) && ! defined(_LIBICONV_VERSION)
       /* Even in HP-UX 11.00, documentation and header files do not agree */
+      /* glibc doesn't seem care too much about standards */
       ret = iconv(obj->handle, &icursor, &inbytesleft,
 		                &ocursor, &outbytesleft);
 #else
@@ -115,20 +125,23 @@ SV *do_conv(struct tiobj *obj, SV *string)
 	    case EILSEQ:
 	       /* Stop conversion if input character encountered which
 		  does not belong to the input char set */
-	       if (raise_error)
+	       if (RAISE_ERROR_P)
 		  croak("Character not from source char set: %s",
 			strerror(errno));
-	       Safefree(obuf);   
+	       Safefree(obuf);
+	       /* INIT_SHIFT_STATE(obj->handle, ocursor, outbytesleft); */
 	       return(&PL_sv_undef);
 	    case EINVAL:
 	       /* Stop conversion if we encounter an incomplete
                   character or shift sequence */
-	       if (raise_error)
+	       if (RAISE_ERROR_P)
 		  croak("Incomplete character or shift sequence: %s",
 			strerror(errno));
-	       Safefree(obuf);   
+	       Safefree(obuf);
 	       return(&PL_sv_undef);
 	    case E2BIG:
+	       /* fprintf(stdout, "%s\n", obuf); */
+
 	       /* If the output buffer is not large enough, copy the
                   converted bytes to the return string, reset the
                   output buffer and continue */
@@ -137,9 +150,9 @@ SV *do_conv(struct tiobj *obj, SV *string)
 	       outbytesleft = l_obuf;
 	       break;
 	    default:
-	       if (raise_error)
+	       if (RAISE_ERROR_P)
 		  croak("iconv error: %s", strerror(errno));
-	       Safefree(obuf);   
+	       Safefree(obuf);
 	       return(&PL_sv_undef);
 	 }
       }
@@ -147,6 +160,38 @@ SV *do_conv(struct tiobj *obj, SV *string)
       {
 	 obj->retval = newSViv(ret);
       }
+   }
+
+   /* For state-dependent encodings, place conversion descriptor into
+      initial shift state and place the byte sequence to change the
+      output buffer to its initial shift state.
+
+      The only (documented) error for this use of iconv() is E2BIG;
+      here it could happen only if the output buffer has no more room
+      for the reset sequence.  We can simply prevent this case by
+      copying its content to the return string before calling iconv()
+      (just like when E2BIG happens during the "normal" use of
+      iconv(), see above).  This adds the (slight, I'd guess) overhead
+      of an additional call to sv_catpvn(), but it makes the code much
+      cleaner.
+
+      Note: Since we currently don't return incomplete conversion
+      results in case of EINVAL and EILSEQ, we don't have to care
+      about the shift state there.  If we did return the results in
+      these cases, we'd also have to reset the shift state there.
+   */
+
+   sv_catpvn(perl_str, obuf, l_obuf - outbytesleft);
+   ocursor = obuf;
+   outbytesleft = l_obuf;
+
+   if((ret = iconv(obj->handle, NULL, NULL, &ocursor, &outbytesleft))
+      == (size_t) -1)
+   {
+      croak("iconv error (while trying to reset shift state): %s",
+	    strerror(errno));
+      Safefree(obuf);
+      return(&PL_sv_undef);
    }
 
    /* Copy the converted bytes to the return string, and free the
@@ -208,6 +253,8 @@ new(self, fromcode, tocode)
 
       obj->handle = handle;
       obj->retval = &PL_sv_undef;
+      obj->raise_error = newSViv(0);
+      sv_setsv(obj->raise_error, &PL_sv_undef);
       RETVAL = obj;
    OUTPUT:
       RETVAL
@@ -230,6 +277,16 @@ ti_retval(self)
       RETVAL = self->retval;
    OUTPUT:
       RETVAL
+
+SV *
+ti_raise_error(self, ...)
+   Text::Iconv *self
+   PPCODE:
+      if (items > 1 && SvIOK(ST(1)))
+      {
+	 sv_setiv(self->raise_error, SvIV(ST(1)));
+      }
+      XPUSHs(sv_mortalcopy(self->raise_error));
 
 void
 ti_DESTROY(self)

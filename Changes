@@ -26,3 +26,10 @@ Revision history for Perl extension Text::Iconv.
 	- to make this possible, Text::Iconv objects are--on the C level--no
 	  longer just the iconv handle, but a struct (which can contain other
 	  information besides the handle)
+
+1.4   Sun Jul 18 00:09:21 CEST 2004
+	- Added instance attribute raise_error and corresponding
+	  method to control exception raising on a per-object basis.
+	- Reset shift state for state-dependent conversions.
+	- Makefile.PL now passes all options besides LIBS and INC to
+	  MakeMaker, so options like INSTALLDIRS=vendor work again.

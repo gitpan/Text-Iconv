@@ -1,4 +1,4 @@
-Text::Iconv Version 1.3
+Text::Iconv Version 1.4
 
 Copyright © 2004 Michael Piotrowski.  All Rights Reserved.
 
@@ -96,9 +96,6 @@ test scripts are supported.
 Thanks
 ------
 
-Thanks go to:
-
-Otto Frost, Marc Lehmann, Loic Dachary, Steve Haslam, Matt Sergeant,
-and Leon Brocard.
+Thanks go to all those who reported bugs and suggested features.
 
 Michael Piotrowski <mxp@dynalabs.de>

@@ -1,5 +1,5 @@
 package Text::Iconv;
-# @(#) $Id: Iconv.pm,v 1.4 2004/06/28 19:06:17 mxp Exp $
+# @(#) $Id: Iconv.pm,v 1.6 2004/07/17 22:25:46 mxp Exp $
 # Copyright (c) 2004 Michael Piotrowski
 
 use strict;
@@ -16,7 +16,7 @@ require AutoLoader;
 @EXPORT_OK = qw(
 	convert
 );
-$VERSION = '1.3';
+$VERSION = '1.4';
 
 bootstrap Text::Iconv $VERSION;
 
@@ -71,7 +71,9 @@ during the conversion, retval() returns B<undef>.
 If the conversion can't be initialized an exception is raised (using
 croak()).
 
-I<Text:Iconv> provides a class attribute B<raise_error> and a
+=head2 Handling of conversion errors
+
+I<Text::Iconv> provides a class attribute B<raise_error> and a
 corresponding class method for setting and getting its value.  The
 handling of errors during conversion depends on the setting of this
 attribute.  If B<raise_error> is set to a true value, an exception is
@@ -82,13 +84,23 @@ default B<raise_error> is false.  Example usage:
   Text::Iconv->raise_error(0);     # Conversion errors return undef
   $a = Text::Iconv->raise_error(); # Get current setting
 
+=head2 Per-object handling of conversion errors
+
+As an experimental feature, I<Text::Iconv> also provides an instance
+attribute B<raise_error> and a corresponding method for setting and
+getting its value.  If B<raise_error> is B<undef>, the class-wide
+settings apply.  If B<raise_error> is 1 or 0 (true or false), the
+object settings override the class-wide settings.
+
 Consult L<iconv(3)> for details on errors that might occur.
 
-Converting undef, e.g.,
+=head2 Conversion of B<undef>
+
+Converting B<undef>, e.g.,
 
   $converted = $converter->convert(undef);
 
-always returns undef.  This is not considered an error.
+always returns B<undef>.  This is not considered an error.
 
 =head1 NOTES
 
