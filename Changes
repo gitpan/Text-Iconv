@@ -17,3 +17,12 @@ Revision history for Perl extension Text::Iconv.
 	- since HP-UX seems to be the only platform where the second
 	  argument to iconv() is *not* const char**, put an #ifdef
 	  into Iconv.xs
+
+1.3   Mon Jun 28 19:25:43 CEST 2004
+	- Makefile.PL now tries to detect the need for -liconv
+	- added retval() method to Text::Iconv objects, which returns the
+	  iconv() return value (according to the Single UNIX Specification,
+	  "the number of non-identical conversions performed")
+	- to make this possible, Text::Iconv objects are--on the C level--no
+	  longer just the iconv handle, but a struct (which can contain other
+	  information besides the handle)

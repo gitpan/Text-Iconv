@@ -1,6 +1,6 @@
-/* $Id: Iconv.xs,v 1.9 2001/08/11 10:10:04 mxp Exp $ */
+/* $Id: Iconv.xs,v 1.10 2004/06/28 19:07:52 mxp Exp $ */
 /* XSUB for Perl module Text::Iconv                  */
-/* Copyright (c) 2000 Michael Piotrowski             */
+/* Copyright (c) 2004 Michael Piotrowski             */
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,10 +15,21 @@ extern "C" {
 #include <iconv.h>
 
 /*****************************************************************************/
+/* This struct represents a Text::Iconv object */
+
+struct tiobj
+{
+   iconv_t handle; /* iconv handle (returned by iconv_open()) */
+   SV *retval;     /* iconv() return value (according to the Single UNIX
+		      Specification, "the number of non-identical conversions
+		      performed") */
+};
+
+/*****************************************************************************/
 
 static int raise_error = 0;
 
-SV *do_conv(iconv_t iconv_handle, SV *string)
+SV *do_conv(struct tiobj *obj, SV *string)
 {
    char    *ibuf;         /* char* to the content of SV *string */
    char    *obuf;         /* temporary output buffer */
@@ -70,7 +81,12 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
    }
 
    l_obuf = outbytesleft;
-   obuf   = (char *) New(0, obuf, outbytesleft, char); /* Perl malloc */
+
+   New(0, obuf, outbytesleft, char); /* Perl malloc */
+   if (obuf == NULL)
+   {
+      croak("New: %s", strerror(errno));
+   }
 
    /**************************************************************************/
 
@@ -83,15 +99,17 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
    {
 #ifdef __hpux
       /* Even in HP-UX 11.00, documentation and header files do not agree */
-      ret = iconv(iconv_handle, &icursor, &inbytesleft,
+      ret = iconv(obj->handle, &icursor, &inbytesleft,
 		                &ocursor, &outbytesleft);
 #else
-      ret = iconv(iconv_handle, (const char **)&icursor, &inbytesleft,
+      ret = iconv(obj->handle, (const char **)&icursor, &inbytesleft,
 		                &ocursor, &outbytesleft);
 #endif
 
       if(ret == (size_t) -1)
       {
+	 obj->retval = &PL_sv_undef;
+
 	 switch(errno)
 	 {
 	    case EILSEQ:
@@ -125,6 +143,10 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
 	       return(&PL_sv_undef);
 	 }
       }
+      else
+      {
+	 obj->retval = newSViv(ret);
+      }
    }
 
    /* Copy the converted bytes to the return string, and free the
@@ -136,12 +158,12 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
    return perl_str;
 }
 
-typedef iconv_t Text__Iconv;
+typedef struct tiobj Text__Iconv;
 
 /*****************************************************************************/
 /* Perl interface                                                            */
 
-MODULE = Text::Iconv		PACKAGE = Text::Iconv
+MODULE = Text::Iconv  PACKAGE = Text::Iconv
 
 PROTOTYPES: ENABLE
 
@@ -156,39 +178,63 @@ raise_error(...)
    OUTPUT:
       RETVAL
 
-Text::Iconv
+Text::Iconv *
 new(self, fromcode, tocode)
    char *fromcode
    char *tocode
    CODE:
-   if((RETVAL = iconv_open(tocode, fromcode)) == (iconv_t)-1)
-   {
-      switch(errno)
+      iconv_t handle;
+      Text__Iconv *obj;
+
+      if ((handle = iconv_open(tocode, fromcode)) == (iconv_t)-1)
       {
-	 case ENOMEM:
-	    croak("Insufficient memory to initialize conversion: %s", 
-		  strerror(errno));
-	 case EINVAL:
-	    croak("Unsupported conversion: %s", strerror(errno));
-	 default:
-	    croak("Couldn't initialize conversion: %s", strerror(errno));
+	 switch(errno)
+	 {
+	    case ENOMEM:
+	       croak("Insufficient memory to initialize conversion: %s", 
+		     strerror(errno));
+	    case EINVAL:
+	       croak("Unsupported conversion: %s", strerror(errno));
+	    default:
+	       croak("Couldn't initialize conversion: %s", strerror(errno));
+	 }
       }
-   }
+
+      Newz(0, obj, 1, Text__Iconv);
+      if (obj == NULL)
+      {
+	 croak("Newz: %s", strerror(errno));
+      }
+
+      obj->handle = handle;
+      obj->retval = &PL_sv_undef;
+      RETVAL = obj;
    OUTPUT:
       RETVAL
 
-SV*
-convert(self, string)
-   Text::Iconv self
+MODULE = Text::Iconv  PACKAGE = Text::IconvPtr  PREFIX = ti_
+
+SV *
+ti_convert(self, string)
+   Text::Iconv *self
    SV *string
    CODE:
       RETVAL = do_conv(self, string);
    OUTPUT:
       RETVAL
 
+SV *
+ti_retval(self)
+   Text::Iconv *self
+   CODE:
+      RETVAL = self->retval;
+   OUTPUT:
+      RETVAL
+
 void
-DESTROY(self)
-   Text::Iconv self
+ti_DESTROY(self)
+   Text::Iconv * self
    CODE:
       /* printf("Now in Text::Iconv::DESTROY\n"); */
-      (void) iconv_close(self);
+      (void) iconv_close(self->handle);
+      Safefree(self);

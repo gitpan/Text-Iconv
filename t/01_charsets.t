@@ -1,3 +1,5 @@
+# @(#) $Id: 01_charsets.t,v 1.2 2004/06/28 19:10:48 mxp Exp $
+
 BEGIN { $| = 1; print "1..13\n"; }
 END {print "not ok 1\n" unless $loaded;}
 use Text::Iconv;
@@ -29,7 +31,7 @@ foreach $source (keys %strings)
 
 	 $c1 = try_codesets($codesets{$source}, $codesets{$target});
 	 $c2 = try_codesets($codesets{$target}, $codesets{$source});
-	 
+
 	 if (not defined $c1 or not defined $c2)
 	 {
 	    print "not ok $test_no \t # (call to open_iconv() failed)\n";
@@ -48,15 +50,16 @@ foreach $source (keys %strings)
 
 	    if ($@)
 	    {
-	       print "not ok $test_no \t # (conversion failed)\n";
+	       print "not ok $test_no \t # ($source <-> $target conversion failed: $@)\n";
 	    }
 	    elsif ($r2 eq $strings{$source})
 	    {
-	       print "ok $test_no \t # ($source <-> $target)\n";
+	       print "ok $test_no \t # ($source <-> $target)", $c1->retval, "/", $c2->retval,"\n";
 	    }
 	    else
 	    {
-	       print "not ok $test_no \t # (roundtrip failed)\n";
+	       print "not ok $test_no \t # ($source <-> $target roundtrip failed)\n";
+print $c1->retval, "/", $c2->retval,"\n";
 	    }
 	 }
       }
@@ -86,7 +89,7 @@ sub try_codesets
 	 {
 	    $converter = new Text::Iconv($f, $t);
 	 };
-	 
+
 	 last TRY if not $@;
       }
    }

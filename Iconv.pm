@@ -1,6 +1,6 @@
 package Text::Iconv;
-# @(#) $Id: Iconv.pm,v 1.3 2001/08/11 10:10:04 mxp Exp $
-# Copyright (c) 2000 Michael Piotrowski
+# @(#) $Id: Iconv.pm,v 1.4 2004/06/28 19:06:17 mxp Exp $
+# Copyright (c) 2004 Michael Piotrowski
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
@@ -16,7 +16,7 @@ require AutoLoader;
 @EXPORT_OK = qw(
 	convert
 );
-$VERSION = '1.2';
+$VERSION = '1.3';
 
 bootstrap Text::Iconv $VERSION;
 
@@ -50,19 +50,33 @@ Settings of I<fromcode> and I<tocode> and their permitted combinations
 are implementation-dependent.  Valid values are specified in the
 system documentation
 
+As an experimental feature, this version of B<Text::Iconv> objects
+provide the retval() method:
+
+  $result = $converter->convert("lorem ipsum dolor sit amet");
+  $retval = $converter->retval;
+
+This method can be called after calling convert().  It returns the
+return value of the underlying iconv() function for the last
+conversion; according to the Single UNIX Specification, this value
+indicates "the number of non-identical conversions performed."  Note,
+however, that iconv implementations vary widely in the interpretation
+of this specification.
+
+When called before the first call to convert(), or if an error occured
+during the conversion, retval() returns B<undef>.
+
 =head1 ERRORS
 
 If the conversion can't be initialized an exception is raised (using
 croak()).
 
-As an experimental feature, this version of I<Text:Iconv> provides a
-new class attribute B<raise_error> and a corresponding class method
-for setting and getting its value.  The handling of errors during
-conversion now depends on the setting of this attribute.  If
-B<raise_error> is set to a true value, an exception is raised;
-otherwise, the convert() method only returns B<undef>.  By default
-B<raise_error> is false.  Warnings are no longer emitted.  Example
-usage:
+I<Text:Iconv> provides a class attribute B<raise_error> and a
+corresponding class method for setting and getting its value.  The
+handling of errors during conversion depends on the setting of this
+attribute.  If B<raise_error> is set to a true value, an exception is
+raised; otherwise, the convert() method only returns B<undef>.  By
+default B<raise_error> is false.  Example usage:
 
   Text::Iconv->raise_error(1);     # Conversion errors raise exceptions
   Text::Iconv->raise_error(0);     # Conversion errors return undef

@@ -1,6 +1,6 @@
-Text::Iconv Version 1.2
+Text::Iconv Version 1.3
 
-Copyright © 2001 Michael Piotrowski.  All Rights Reserved.
+Copyright © 2004 Michael Piotrowski.  All Rights Reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
@@ -26,9 +26,9 @@ are in most cases supplied by the operating system vendor.  Some
 systems also allow you to build your own tables (e.g., HP-UX, Tru64
 UNIX, and AIX provide the genxlt(1) command).
 
-It is also possible to use a separate iconv library such as Bruno
-Haible's libiconv package, just make sure that the desired library is
-found (see <http://clisp.cons.org/~haible/packages-libiconv.html>).
+It is also possible to use a separate iconv library such as GNU
+libiconv package, just make sure that the desired library is found
+(see <http://www.gnu.org/directory/localization/libiconv.html>).
 
 Building the module
 -------------------
@@ -40,16 +40,25 @@ several issues are left to the implementation to define, namely:
     2. The supported conversions
     3. The names for the supported codesets
 
-Please check your system documentation for the above points.  You
-might also have to link in a special library (AIX seems to require
-this).  If this is the case, add it to the list of needed libraries in
-Makefile.PL (e.g.: -liconv).
+Please check your system documentation for the above points.
 
 The module can be built using this sequence of commands:
 
     perl Makefile.PL
     make
     make test
+
+On some systems, the iconv functions are in libc; on others (and when
+you want to use a separate iconv library, such as GNU libiconv), you
+have to link with -liconv.  Makefile.PL tries to automatically detect
+this.  However, if your iconv library is in a non-standard path, you
+might have to help it.  You can specify library and include paths like
+this:
+
+    perl Makefile.PL LIBS='-L/path/to/lib' INC='-I/path/to/include
+
+You might also have to do this if you have multiple iconv
+implementations installed and want to use a specific one.
 
 The purpose of the test scripts (run by "make test") is to check if an
 iconv library can be found, and if the iconv functions can be called.
@@ -74,10 +83,10 @@ Installation
 Feedback
 --------
 
-This version of Locale::iconv was tested on HP-UX 10.20 and 11.00,
-Solaris 2.6, and Linux 2.2.13 (whatever that means), using their
-native iconv implementations.  I've also gotten success reports for
-HP-UX 10.20 and Solaris 2.6 using Bruno Haible's libiconv.
+This version of Text::Iconv was tested on HP-UX 11.00 (native and with
+GNU libiconv), NetBSD 1.6.1 (with GNU libiconv), NetBSD 1.6ZK (native
+and with GNU libiconv), FreeBSD 5.1 (with GNU libiconv), Solaris 8,
+Solaris 9, and Linux 2.4.20.
 
 If you are building the module on another platform I would appreciate
 a note to tell me how you got on, especially if you need to specify
