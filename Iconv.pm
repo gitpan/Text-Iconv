@@ -16,7 +16,7 @@ require AutoLoader;
 @EXPORT_OK = qw(
 	convert
 );
-$VERSION = '1.0';
+$VERSION = '1.1';
 
 bootstrap Text::Iconv $VERSION;
 
@@ -30,7 +30,7 @@ __END__
 
 =head1 NAME
 
-Text::Iconv - Perl interface to the XPG4 iconv() function
+Text::Iconv - Perl interface to iconv() codeset conversion function
 
 =head1 SYNOPSIS
 
@@ -40,34 +40,47 @@ Text::Iconv - Perl interface to the XPG4 iconv() function
 
 =head1 DESCRIPTION
 
-The I<Text::Iconv> module provides a Perl interface to the iconv()
-function as defined by the X/Open Single UNIX Specification (XPG4).
-The convert() method converts the encoding of characters in the input
-string from the I<fromcode> code set to the I<tocode> code set, and
-returns the result.
+The B<Text::Iconv> module provides a Perl interface to the iconv()
+function as defined by the Single UNIX Specification.  The convert()
+method converts the encoding of characters in the input string from
+the I<fromcode> codeset to the I<tocode> codeset, and returns the
+result.
 
 Settings of I<fromcode> and I<tocode> and their permitted combinations
-are implementation-dependent. Valid values are specified in the system
-documentation
+are implementation-dependent.  Valid values are specified in the
+system documentation
 
 =head1 ERRORS
 
-If the conversion can't be initialized an error is generated (using
-croak()). If an error occurs in the conversion a warning describing
-the problem is emitted (using warn()) and I<undef> is returned.
+If the conversion can't be initialized an exception is raised (using
+croak()).
+
+As an experimental feature, this version of I<Text:Iconv> provides a
+new class attribute B<raise_error> and a corresponding class method
+for setting and getting its value.  The handling of errors during
+conversion now depends on the setting of this attribute.  If
+B<raise_error> is set to a true value, an exception is raised;
+otherwise, the convert() method only returns B<undef>.  By default
+B<raise_error> is false.  Warnings are no longer emitted.  Example
+usage:
+
+  Text::Iconv->raise_error(1);     # Conversion errors raise exceptions
+  Text::Iconv->raise_error(0);     # Conversion errors return undef
+  $a = Text::Iconv->raise_error(); # Get current setting
 
 Consult L<iconv(3)> for details on errors that might occur.
 
 =head1 NOTES
 
-The quality of the conversion is system-dependent.
+The supported codesets, their names, the supported conversions, and
+the quality of the conversions are all system-dependent.
 
 =head1 AUTHOR
 
-Michael Piotrowski, mxp@dynalabs.de
+Michael Piotrowski <mxp@dynalabs.de>
 
 =head1 SEE ALSO
 
-iconv(3)
+iconv(1), iconv(3)
 
 =cut

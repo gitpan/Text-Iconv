@@ -1,6 +1,6 @@
-/* $Id: Iconv.xs,v 1.1 1997/08/25 17:33:24 mxp Exp $ */
-/* XSUB for Perl module Text::Iconv       */
-/* Copyright (c) 1997, Michael Piotrowski */
+/* $Id: Iconv.xs,v 1.8 2000/12/17 23:50:02 mxp Exp $ */
+/* XSUB for Perl module Text::Iconv                  */
+/* Copyright (c) 2000 Michael Piotrowski             */
 
 #ifdef __cplusplus
 extern "C" {
@@ -16,6 +16,8 @@ extern "C" {
 
 /*****************************************************************************/
 
+static int raise_error = 0;
+
 SV *do_conv(iconv_t iconv_handle, SV *string)
 {
    char    *ibuf;         /* char* to the content of SV *string */
@@ -25,7 +27,12 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
 			     and 0 when the conversion has finished */
    size_t  outbytesleft;  /* no. of bytes in the output buffer */
    size_t  l_obuf;        /* length of the output buffer */
-   char    *icursor;      /* current position in the input buffer */
+   char *icursor;         /* current position in the input buffer */
+   /* The Single UNIX Specification (version 1 and version 2), as well
+      as the HP-UX documentation from which the XPG iconv specs are
+      derived, are unclear about the type of the second argument to
+      iconv() (here called icursor): The manpages say const char **,
+      while the header files say char **. */
    char    *ocursor;      /* current position in the output buffer */
    size_t  ret;           /* iconv() return value */
    SV      *perl_str;     /* Perl return string */
@@ -76,18 +83,19 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
 	    case EILSEQ:
 	       /* Stop conversion if input character encountered which
 		  does not belong to the input char set */
-	       warn("Character not from source char set: %s", strerror(errno));
-	       free(obuf);   
-	       (void) iconv_close(iconv_handle);
-	       return(&sv_undef);
+	       if (raise_error)
+		  croak("Character not from source char set: %s",
+			strerror(errno));
+	       Safefree(obuf);   
+	       return(&PL_sv_undef);
 	    case EINVAL:
 	       /* Stop conversion if we encounter an incomplete
                   character or shift sequence */
-	       warn("Incomplete character or shift sequence: %s",
-		    strerror(errno));
-	       free(obuf);   
-	       (void) iconv_close(iconv_handle);
-	       return(&sv_undef);
+	       if (raise_error)
+		  croak("Incomplete character or shift sequence: %s",
+			strerror(errno));
+	       Safefree(obuf);   
+	       return(&PL_sv_undef);
 	    case E2BIG:
 	       /* If the output buffer is not large enough, copy the
                   converted bytes to the return string, reset the
@@ -97,31 +105,45 @@ SV *do_conv(iconv_t iconv_handle, SV *string)
 	       outbytesleft = l_obuf;
 	       break;
 	    default:
-	       warn("iconv error: %s", strerror(errno));
-	       free(obuf);   
-	       (void) iconv_close(iconv_handle);
-	       return(&sv_undef);
+	       if (raise_error)
+		  croak("iconv error: %s", strerror(errno));
+	       Safefree(obuf);   
+	       return(&PL_sv_undef);
 	 }
       }
    }
 
-   /* Copy the converted bytes to the return string, free the output
-      buffer and release the conversion descriptor */
+   /* Copy the converted bytes to the return string, and free the
+      output buffer */
    
    sv_catpvn(perl_str, obuf, l_obuf - outbytesleft);
    Safefree(obuf); /* Perl malloc */
-/*   (void) iconv_close(iconv_handle); */
 
    return perl_str;
 }
 
+typedef iconv_t Text__Iconv;
+
 /*****************************************************************************/
 /* Perl interface                                                            */
 
-MODULE = Text::Iconv		PACKAGE = Text::Iconv      PREFIX = iconv_t_
+MODULE = Text::Iconv		PACKAGE = Text::Iconv
 
-iconv_t
-iconv_t_new(self, fromcode, tocode)
+PROTOTYPES: ENABLE
+
+int
+raise_error(...)
+   CODE:
+      if (items > 0 && SvIOK(ST(0))) /* if called as function */
+         raise_error = SvIV(ST(0));
+      if (items > 1 && SvIOK(ST(1))) /* if called as class method */
+         raise_error = SvIV(ST(1));
+      RETVAL = raise_error;
+   OUTPUT:
+      RETVAL
+
+Text::Iconv
+new(self, fromcode, tocode)
    char *fromcode
    char *tocode
    CODE:
@@ -141,11 +163,9 @@ iconv_t_new(self, fromcode, tocode)
    OUTPUT:
       RETVAL
 
-MODULE = Text::Iconv		PACKAGE = iconv_t      PREFIX = iconv_t_
-
 SV*
-iconv_t_convert(self, string)
-   iconv_t self
+convert(self, string)
+   Text::Iconv self
    SV *string
    CODE:
       RETVAL = do_conv(self, string);
@@ -153,8 +173,8 @@ iconv_t_convert(self, string)
       RETVAL
 
 void
-iconv_t_DESTROY(self)
-   iconv_t self
+DESTROY(self)
+   Text::Iconv self
    CODE:
-      /* printf("Now in iconv_t::DESTROY\n"); */
+      /* printf("Now in Text::Iconv::DESTROY\n"); */
       (void) iconv_close(self);

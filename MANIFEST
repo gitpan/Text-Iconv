@@ -4,5 +4,6 @@ Iconv.xs
 MANIFEST
 Makefile.PL
 README
-test.pl
 typemap
+t/00_load.t
+t/01_charsets.t
