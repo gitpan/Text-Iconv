@@ -1,0 +1,7 @@
+Revision history for Perl extension Text::Iconv.
+
+0.01  Sat Aug 23 16:14:12 1997
+	- original version; created by h2xs 1.18
+
+1.0   Sun Feb 27 16:50:11 MET 2000
+	- renamed to Text::Iconv.

@@ -1,0 +1,2 @@
+TYPEMAP
+iconv_t T_PTROBJ

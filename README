@@ -1,0 +1,68 @@
+Text::Iconv
+
+Copyright © 2000 Michael Piotrowski.  All Rights Reserved.
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+Description
+-----------
+
+This module provides a Perl interface to the XPG4 iconv() function.
+For more details see the POD documentation embedded in the file
+Iconv.pm, which will also be installed as Text::Iconv(3) man page.
+
+Prerequisites
+-------------
+
+Your system should be compliant with XPG4 or at least provide
+iconv_open(), iconv() and iconv_close() functions compliant with XPG4.
+
+Note that the possible conversions and the quality of the conversions
+depend on the available iconv conversion tables and algorithms, which
+are in most cases supplied by the operating system vendor.  Some
+systems also allow you to build your own tables (e.g., HP-UX, Digital
+UNIX, and AIX provide the genxlt(1) command).
+
+Building the module
+-------------------
+
+Since XPG4 only specifies an interface, several issues are left to the
+implementation to define, namely:
+
+    1. The supported conversions
+    2. The supported character sets
+    3. The names for the supported character sets
+
+Please check your system documentation for the above points.  You
+might also have to link in a special library (AIX seems to require
+this).  If this is the case, add it to the list of needed libraries in
+Makefile.PL (e.g.: -liconv).
+
+You might also have to change the character set names which are used
+in the tests run by "make test".  See test.pl.
+
+No changes are necessary for HP-UX systems.
+
+The module can now be built using this sequence of commands:
+
+    perl Makefile.PL
+    make
+    make test
+
+Installation
+------------
+
+    make install
+
+Feedback
+--------
+
+Locale::iconv was only tested on HP-UX 10.20.  If you are building the
+module on another architecture I would appreciate a note to tell me
+how you got on.  It would also be good to know what conversions and
+character sets are supported by the different systems, so that the
+tests could automatically select conversions which are known to be
+supported on the specific system.
+
+Michael Piotrowski <mxp@dynalabs.de>

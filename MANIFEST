@@ -1,0 +1,8 @@
+Changes
+Iconv.pm
+Iconv.xs
+MANIFEST
+Makefile.PL
+README
+test.pl
+typemap
