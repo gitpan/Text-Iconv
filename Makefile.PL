@@ -1,4 +1,4 @@
-# @(#) $Id: Makefile.PL,v 1.6 2004/07/17 22:16:55 mxp Exp $
+# @(#) $Id: Makefile.PL,v 1.7 2007/08/30 12:52:42 mxp Exp $
 
 use ExtUtils::MakeMaker;
 use Config;
@@ -79,17 +79,17 @@ else
 # Write the makefile
 
 WriteMakefile(
-    'NAME'		=> 'Text::Iconv',
-    'VERSION_FROM'	=> 'Iconv.pm', # finds $VERSION
-    'PREREQ_PM'		=> {}, # e.g., Module::Name => 1.1
-    ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
-      (ABSTRACT_FROM => 'Iconv.pm', # retrieve abstract from module
-       AUTHOR        => 'Michael Piotrowski <mxp@dynalabs.de>') : ()),
-    'LIBS'		=> $config{LIBS},
-    'DEFINE'		=> "@DEFINE",
-    'INC'		=> $config{INC},
-    'dist'              => {COMPRESS => 'gzip', SUFFIX => 'gz'},
-);
+	      'NAME'              => 'Text::Iconv',
+	      'VERSION_FROM'      => 'Iconv.pm', # finds $VERSION
+	      'PREREQ_PM'         => {}, # e.g., Module::Name => 1.1
+	      ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
+	       (ABSTRACT_FROM => 'Iconv.pm', # retrieve abstract from module
+		AUTHOR        => 'Michael Piotrowski <mxp@dynalabs.de>') : ()),
+	      'LIBS'              => $config{LIBS},
+	      'DEFINE'            => "@DEFINE",
+	      'INC'               => $config{INC},
+	      'dist'              => {COMPRESS => 'gzip', SUFFIX => 'gz'},
+	     );
 
 ###############################################################################
 
@@ -98,7 +98,9 @@ sub linktest
    my $libs = shift;
    my $incs = shift;
 
-   my $file = '.linktest';
+   my $file = 'linktest';
+   my $obj_ext = $Config{_o};
+
    my $prog = <<EOT;
 #include <iconv.h>
 
@@ -108,15 +110,43 @@ int main(void)
 }
 EOT
 
-   my $compile = join ' ', $Config{cc}, $incs, $Config{ccflags},
-       $Config{ldflags}, $libs;
-   # print "Compiler: $compile\n";
-   open  LINKTEST, '>', "$file.c" or die "Can't create test file";
+   my $compile;
+
+   unless ($^O eq 'VMS')
+   {
+      # It is admittedly a bit simplistic to simply concatenate all
+      # flags, but it seems to work in most cases.
+      $compile = join ' ', $Config{cc}, $incs, $Config{ccflags},
+	  $Config{ldflags}, $libs;
+   }
+   else
+   {
+      $compile = join ' ', $Config{cc}, $incs, $Config{ccflags}, $libs;
+   }
+
+   if (exists $config{verbose})
+   {
+      print "\nCompiler: '$compile'\n";
+   }
+
+   open  LINKTEST, '>', "$file.c" or die "Can't create test file '$file.c'.";
    print LINKTEST $prog;
    close LINKTEST;
 
-   my $result = system("$compile -o $file $file.c $libs 2> /dev/null") / 256;
-   unlink $file, "$file.c", "$file.o";
+   my $compile_line = "$compile -o $file $file.c $libs 2> /dev/null";
+
+   if ($^O eq 'VMS')
+   {
+      $compile_line = "pipe $compile $file.c $libs 2> NL:";
+   }
+
+   if (exists $config{verbose})
+   {
+      print "\nCompiler command line: '$compile_line'\n";
+   }
+
+   my $result = system($compile_line) / 256;
+   unlink $file, "$file.c", "$file$obj_ext";
 
    if ($result == 0)
    {

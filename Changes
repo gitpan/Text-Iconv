@@ -33,3 +33,10 @@ Revision history for Perl extension Text::Iconv.
 	- Reset shift state for state-dependent conversions.
 	- Makefile.PL now passes all options besides LIBS and INC to
 	  MakeMaker, so options like INSTALLDIRS=vendor work again.
+
+1.5   Thu Aug 30 14:42:08 CEST 2007
+	- Various small changes to make Text::Iconv compile on OpenVMS
+	  (based on a patch by Peter (Stig) Edwards)
+	- Output buffer was always initialized to 5 bytes--this was
+	  just for testing, but I'd forgotten to revert back to the
+	  original code (detected via a bug report by Aldo LeTellier).

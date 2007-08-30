@@ -1,6 +1,6 @@
-Text::Iconv Version 1.4
+Text::Iconv Version 1.5
 
-Copyright © 2004 Michael Piotrowski.  All Rights Reserved.
+Copyright © 2007 Michael Piotrowski.  All Rights Reserved.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.
@@ -83,15 +83,12 @@ Installation
 Feedback
 --------
 
-This version of Text::Iconv was tested on HP-UX 11.00 (native and with
-GNU libiconv), NetBSD 1.6.1 (with GNU libiconv), NetBSD 1.6ZK (native
-and with GNU libiconv), FreeBSD 5.1 (with GNU libiconv), Solaris 8,
-Solaris 9, and Linux 2.4.20.
+Text::Iconv was tested on various platforms and with different iconv
+implementations.
 
-If you are building the module on another platform I would appreciate
-a note to tell me how you got on, especially if you need to specify
-additional libraries, or if none of the codeset identifiers in the
-test scripts are supported.
+If you built Text::Iconv on a platform where you needed to specify
+additional libraries, or where none of the codeset identifiers in the
+test scripts are supported, please drop me a note.
 
 Thanks
 ------

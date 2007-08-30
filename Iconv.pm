@@ -1,6 +1,6 @@
 package Text::Iconv;
-# @(#) $Id: Iconv.pm,v 1.6 2004/07/17 22:25:46 mxp Exp $
-# Copyright (c) 2004 Michael Piotrowski
+# @(#) $Id: Iconv.pm,v 1.7 2007/08/30 12:52:42 mxp Exp $
+# Copyright (c) 2007 Michael Piotrowski
 
 use strict;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
@@ -16,7 +16,7 @@ require AutoLoader;
 @EXPORT_OK = qw(
 	convert
 );
-$VERSION = '1.4';
+$VERSION = '1.5';
 
 bootstrap Text::Iconv $VERSION;
 
