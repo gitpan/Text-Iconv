@@ -1,4 +1,4 @@
-# @(#) $Id: 01_charsets.t,v 1.3 2007/08/30 12:52:42 mxp Exp $
+# @(#) $Id: 01_charsets.t,v 1.4 2007/10/12 21:38:01 mxp Exp $
 # -*- encoding: iso-8859-1 -*-
 
 BEGIN { $| = 1; print "1..13\n"; }
@@ -114,3 +114,7 @@ sub try_codesets
       return $converter;
    }
 }
+
+### Local variables:
+### mode: perl
+### End:

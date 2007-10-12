@@ -1,4 +1,4 @@
-/* $Id: Iconv.xs,v 1.13 2007/08/30 12:52:42 mxp Exp $ */
+/* $Id: Iconv.xs,v 1.14 2007/10/12 22:24:38 mxp Exp $ */
 /* XSUB for Perl module Text::Iconv                   */
 /* Copyright (c) 2007 Michael Piotrowski              */
 
@@ -28,6 +28,14 @@ struct tiobj
 };
 
 /*****************************************************************************/
+
+static int
+not_here(s)
+char *s;
+{
+   croak("%s not implemented on this architecture", s);
+   return -1;
+}
 
 static int raise_error = 0;
 
@@ -203,6 +211,15 @@ SV *do_conv(struct tiobj *obj, SV *string)
    return perl_str;
 }
 
+/* */
+
+#if _LIBICONV_VERSION >= 0x0109
+int do_iconvctl(struct tiobj *obj, int request, void *arg)
+{
+   return iconvctl(obj->handle, request, arg);
+}
+#endif
+
 typedef struct tiobj Text__Iconv;
 
 /*****************************************************************************/
@@ -288,6 +305,91 @@ ti_raise_error(self, ...)
          sv_setiv(self->raise_error, SvIV(ST(1)));
       }
       XPUSHs(sv_mortalcopy(self->raise_error));
+
+#if _LIBICONV_VERSION >= 0x0109
+
+int
+ti_get_attr(self, request)
+   Text::Iconv *self
+   char *request;
+   CODE:
+      int reqno;
+      int arg;
+      int err;
+
+      if (strEQ(request, "trivialp"))
+	 reqno = ICONV_TRIVIALP;
+      else if (strEQ(request, "transliterate"))
+	 reqno = ICONV_GET_TRANSLITERATE;
+      else if (strEQ(request, "discard_ilseq"))
+	 reqno = ICONV_GET_DISCARD_ILSEQ;
+      else
+	 reqno = -1;
+
+      err = do_iconvctl(self, reqno, &arg);
+
+      if (err < 0)
+         RETVAL = err;
+      else
+         RETVAL = arg;
+   OUTPUT:
+      RETVAL
+
+#else
+
+int
+ti_get_attr(self, request)
+   Text::Iconv *self
+   char *request;
+   CODE:
+     not_here("iconvctl (needed for get_attr())");
+     RETVAL = -1;
+   OUTPUT:
+     RETVAL
+
+#endif
+
+#if _LIBICONV_VERSION >= 0x0109
+
+int
+ti_set_attr(self, request, arg)
+   Text::Iconv *self
+   char *request;
+   int arg;
+   CODE:
+      int reqno;
+      int err;
+
+      if (strEQ(request, "transliterate"))
+	 reqno = ICONV_SET_TRANSLITERATE;
+      else if (strEQ(request, "discard_ilseq"))
+	 reqno = ICONV_SET_DISCARD_ILSEQ;
+      else
+	 reqno = -1;
+
+      err = do_iconvctl(self, reqno, &arg);
+
+      if (err < 0)
+         RETVAL = err;
+      else
+         RETVAL = arg;
+   OUTPUT:
+      RETVAL
+
+#else
+
+int
+ti_set_attr(self, request, arg)
+   Text::Iconv *self
+   char *request;
+   int arg;
+   CODE:
+     not_here("iconvctl (needed for set_attr())");
+     RETVAL = -1;
+   OUTPUT:
+     RETVAL
+
+#endif
 
 void
 ti_DESTROY(self)

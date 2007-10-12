@@ -1,5 +1,5 @@
 package Text::Iconv;
-# @(#) $Id: Iconv.pm,v 1.7 2007/08/30 12:52:42 mxp Exp $
+# @(#) $Id: Iconv.pm,v 1.8 2007/10/12 22:11:30 mxp Exp $
 # Copyright (c) 2007 Michael Piotrowski
 
 use strict;
@@ -16,7 +16,7 @@ require AutoLoader;
 @EXPORT_OK = qw(
 	convert
 );
-$VERSION = '1.5';
+$VERSION = '1.6';
 
 bootstrap Text::Iconv $VERSION;
 
@@ -41,30 +41,72 @@ Text::Iconv - Perl interface to iconv() codeset conversion function
 =head1 DESCRIPTION
 
 The B<Text::Iconv> module provides a Perl interface to the iconv()
-function as defined by the Single UNIX Specification.  The convert()
-method converts the encoding of characters in the input string from
-the I<fromcode> codeset to the I<tocode> codeset, and returns the
-result.
+function as defined by the Single UNIX Specification.
+
+The convert() method converts the encoding of characters in the input
+string from the I<fromcode> codeset to the I<tocode> codeset, and
+returns the result.
 
 Settings of I<fromcode> and I<tocode> and their permitted combinations
 are implementation-dependent.  Valid values are specified in the
-system documentation
+system documentation; the iconv(1) utility should also provide a B<-l>
+option that lists all supported codesets.
 
-As an experimental feature, this version of B<Text::Iconv> objects
-provide the retval() method:
+=head2 Utility methods
+
+B<Text::Iconv> objects also provide the following methods:
+
+retval() returns the return value of the underlying iconv() function
+for the last conversion; according to the Single UNIX Specification,
+this value indicates "the number of non-identical conversions
+performed."  Note, however, that iconv implementations vary widely in
+the interpretation of this specification.
+
+This method can be called after calling convert(), e.g.:
 
   $result = $converter->convert("lorem ipsum dolor sit amet");
   $retval = $converter->retval;
 
-This method can be called after calling convert().  It returns the
-return value of the underlying iconv() function for the last
-conversion; according to the Single UNIX Specification, this value
-indicates "the number of non-identical conversions performed."  Note,
-however, that iconv implementations vary widely in the interpretation
-of this specification.
-
 When called before the first call to convert(), or if an error occured
 during the conversion, retval() returns B<undef>.
+
+get_attr(): This method is only available with GNU libiconv, otherwise
+it throws an exception.  The get_attr() method allows you to query
+various attributes which influence the behavior of convert().  The
+currently supported attributes are I<trivialp>, I<transliterate>, and
+I<discard_ilseq>, e.g.:
+
+  $state = $converter->get_attr("transliterate");
+
+See iconvctl(3) for details.  To ensure portability to other iconv
+implementations you should first check for the availability of this
+method using B<eval {}>, e.g.:
+
+    eval { $conv->get_attr("trivialp") };
+    if ($@)
+    {
+      # get_attr() is not available
+    }
+    else
+    {
+      # get_attr() is available
+    }
+
+This method should be considered experimental.
+
+set_attr(): This method is only available with GNU libiconv, otherwise
+it throws an exception.  The set_attr() method allows you to set
+various attributes which influence the behavior of convert().  The
+currently supported attributes are I<transliterate> and
+I<discard_ilseq>, e.g.:
+
+  $state = $converter->set_attr("transliterate");
+
+See iconvctl(3) for details.  To ensure portability to other iconv
+implementations you should first check for the availability of this
+method using B<eval {}>, cf. the description of set_attr() above.
+
+This method should be considered experimental.
 
 =head1 ERRORS
 

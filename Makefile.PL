@@ -1,10 +1,12 @@
-# @(#) $Id: Makefile.PL,v 1.7 2007/08/30 12:52:42 mxp Exp $
+# @(#) $Id: Makefile.PL,v 1.8 2007/10/12 20:55:44 mxp Exp $
 
 use ExtUtils::MakeMaker;
 use Config;
+use File::Spec;
 
 my %config;
 my $ok;
+my $devnull = File::Spec->devnull();
 
 ###############################################################################
 # Read settings from the commandline
@@ -133,7 +135,7 @@ EOT
    print LINKTEST $prog;
    close LINKTEST;
 
-   my $compile_line = "$compile -o $file $file.c $libs 2> /dev/null";
+   my $compile_line = "$compile -o $file $file.c $libs 2> $devnull";
 
    if ($^O eq 'VMS')
    {

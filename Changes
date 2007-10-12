@@ -40,3 +40,11 @@ Revision history for Perl extension Text::Iconv.
 	- Output buffer was always initialized to 5 bytes--this was
 	  just for testing, but I'd forgotten to revert back to the
 	  original code (detected via a bug report by Aldo LeTellier).
+
+1.6   Sat Oct 13 00:16:30 CEST 2007
+	- Makefile.PL now uses File::Spec to portably specify the null
+	  device.  This should make it possible to build Text::Iconv
+	  on Windows "out of the box".
+	- Added get_attr() and set_attr() methods.  They provide an
+	  interface to the iconvctl() function of GNU libiconv.
+
