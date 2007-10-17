@@ -1,5 +1,5 @@
 package Text::Iconv;
-# @(#) $Id: Iconv.pm,v 1.8 2007/10/12 22:11:30 mxp Exp $
+# @(#) $Id: Iconv.pm,v 1.9 2007/10/17 14:06:22 mxp Exp $
 # Copyright (c) 2007 Michael Piotrowski
 
 use strict;
@@ -16,7 +16,7 @@ require AutoLoader;
 @EXPORT_OK = qw(
 	convert
 );
-$VERSION = '1.6';
+$VERSION = '1.6.1';
 
 bootstrap Text::Iconv $VERSION;
 

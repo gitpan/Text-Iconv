@@ -48,3 +48,10 @@ Revision history for Perl extension Text::Iconv.
 	- Added get_attr() and set_attr() methods.  They provide an
 	  interface to the iconvctl() function of GNU libiconv.
 
+1.6.1 Wed Oct 17 15:49:56 CEST 2007
+	- Makefile.PL now explicitly declares "use 5.006;" since it
+	  uses functionality like delete() for array elements.
+	- In Iconv.xs, moved the variable declarations in
+	  ti_set_attr() and ti_get_attr() into the PREINIT: section.
+	  This makes it possible to compile it using gcc 2.96.
+

@@ -1,4 +1,4 @@
-/* $Id: Iconv.xs,v 1.14 2007/10/12 22:24:38 mxp Exp $ */
+/* $Id: Iconv.xs,v 1.15 2007/10/17 14:06:22 mxp Exp $ */
 /* XSUB for Perl module Text::Iconv                   */
 /* Copyright (c) 2007 Michael Piotrowski              */
 
@@ -312,11 +312,11 @@ int
 ti_get_attr(self, request)
    Text::Iconv *self
    char *request;
-   CODE:
+   PREINIT:
       int reqno;
       int arg;
       int err;
-
+   CODE:
       if (strEQ(request, "trivialp"))
 	 reqno = ICONV_TRIVIALP;
       else if (strEQ(request, "transliterate"))
@@ -356,10 +356,10 @@ ti_set_attr(self, request, arg)
    Text::Iconv *self
    char *request;
    int arg;
-   CODE:
+   PREINIT:
       int reqno;
       int err;
-
+   CODE:
       if (strEQ(request, "transliterate"))
 	 reqno = ICONV_SET_TRANSLITERATE;
       else if (strEQ(request, "discard_ilseq"))

@@ -1,5 +1,6 @@
-# @(#) $Id: Makefile.PL,v 1.8 2007/10/12 20:55:44 mxp Exp $
+# @(#) $Id: Makefile.PL,v 1.9 2007/10/17 14:06:22 mxp Exp $
 
+use 5.006;
 use ExtUtils::MakeMaker;
 use Config;
 use File::Spec;
